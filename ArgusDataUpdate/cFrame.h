@@ -3,7 +3,7 @@
 #include "wx/wx.h"
 #include "wx/filepicker.h"
 #include "wx/valnum.h"
-#include "cTransfer.h"
+#include "sUpdate.h"
 
 class cFrame : public wxFrame
 {

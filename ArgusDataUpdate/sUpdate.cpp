@@ -1,10 +1,10 @@
-#include "cTransfer.h"
+#include "sUpdate.h"
 #include <algorithm>
 #include <iostream>
 
 using namespace libxl;
 
-cTransfer::cTransfer(std::wstring sourcePath, std::wstring destinationPath, unsigned int headRow)
+sUpdate::sUpdate(std::wstring sourcePath, std::wstring destinationPath, unsigned int headRow)
 	: srcPath(sourcePath), destPath(destinationPath), headRow(headRow)
 {
 	if (srcPath.compare(destPath) == 0) {
@@ -39,7 +39,7 @@ cTransfer::cTransfer(std::wstring sourcePath, std::wstring destinationPath, unsi
 	std::wcout << "Loaded books" << std::endl;
 }
 
-cTransfer::~cTransfer() {
+sUpdate::~sUpdate() {
 	dest->save(destPath.replace(destPath.find(L".xls"), 4, L"_processed.xls").c_str());
 	std::wcout << "Output saved as: " << destPath << std::endl;
 
@@ -47,7 +47,7 @@ cTransfer::~cTransfer() {
 	dest->release();
 }
 
-int cTransfer::CopyBook()
+int sUpdate::CopyBook()
 {
 	int numSrcSheets = src->sheetCount();
 
@@ -68,7 +68,7 @@ int cTransfer::CopyBook()
 	return 0;
 }
 
-int cTransfer::getSheet(libxl::Book* book, std::wstring label)
+int sUpdate::getSheet(libxl::Book* book, std::wstring label)
 {
 	for (int sheet = 0; sheet < book->sheetCount(); sheet++)
 	{
@@ -79,7 +79,7 @@ int cTransfer::getSheet(libxl::Book* book, std::wstring label)
 	return -1;
 }
 
-void cTransfer::CopySheet()
+void sUpdate::CopySheet()
 {
 	int srcIDCol = getCol(srcSheet, L"unique", false);
 	int destIDCol = getCol(destSheet, L"unique", false);
@@ -110,18 +110,18 @@ void cTransfer::CopySheet()
 	}
 }
 
-bool cTransfer::isID()
+bool sUpdate::isID()
 {
 	return getCol(src->getSheet(0), L"unique", false) != -1 
 		&& getCol(dest->getSheet(0), L"unique", false) != -1;
 }
 
-void cTransfer::CopyCell(int row, int col)
+void sUpdate::CopyCell(int row, int col)
 {
 	CopyCell(row, row, col, col);
 }
 
-void cTransfer::CopyCell(int srcRow, int destRow, int srcCol, int destCol)
+void sUpdate::CopyCell(int srcRow, int destRow, int srcCol, int destCol)
 {
 	auto cellType = srcSheet->cellType(srcRow, srcCol);
 	auto srcFormat = srcSheet->cellFormat(srcRow, srcCol);
@@ -179,7 +179,7 @@ void cTransfer::CopyCell(int srcRow, int destRow, int srcCol, int destCol)
 	}
 }
 
-int cTransfer::getRow(libxl::Sheet* sheet, std::wstring label, int idCol)
+int sUpdate::getRow(libxl::Sheet* sheet, std::wstring label, int idCol)
 {
 	for (int row = headRow; row < sheet->lastFilledRow(); row++)
 	{
@@ -191,7 +191,7 @@ int cTransfer::getRow(libxl::Sheet* sheet, std::wstring label, int idCol)
 }
 
 
-int cTransfer::getCol(Sheet* sheet, std::wstring label, bool comment)
+int sUpdate::getCol(Sheet* sheet, std::wstring label, bool comment)
 {
 	auto colList = getColList(sheet, label);
 	if (colList.empty())
@@ -203,7 +203,7 @@ int cTransfer::getCol(Sheet* sheet, std::wstring label, bool comment)
 		return colList.front();
 }
 
-std::list<int> cTransfer::getColList(Sheet* sheet, std::wstring label)
+std::list<int> sUpdate::getColList(Sheet* sheet, std::wstring label)
 {
 	std::list<int> colList(0);
 	for (int col = sheet->firstFilledCol(); col < sheet->lastFilledCol(); col++)

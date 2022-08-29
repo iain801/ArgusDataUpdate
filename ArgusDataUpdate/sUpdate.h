@@ -3,12 +3,12 @@
 #include <string>
 #include <list>
 
-class cTransfer
+class sUpdate
 {
 public:
-	cTransfer(std::wstring srcPath, std::wstring destPath, 
+	sUpdate(std::wstring srcPath, std::wstring destPath, 
 		unsigned int headRow);
-	~cTransfer();
+	~sUpdate();
 
 	int CopyBook();
 	bool isID();

@@ -18,7 +18,7 @@
     <ClInclude Include="cApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cTransfer.h">
+    <ClInclude Include="sUpdate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cFrame.h">
@@ -32,7 +32,7 @@
     <ClCompile Include="cFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cTransfer.cpp">
+    <ClCompile Include="sUpdate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
