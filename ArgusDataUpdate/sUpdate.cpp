@@ -4,8 +4,8 @@
 
 using namespace libxl;
 
-sUpdate::sUpdate(std::wstring sourcePath, std::wstring destinationPath, unsigned int headRow)
-	: srcPath(sourcePath), destPath(destinationPath), headRow(headRow)
+sUpdate::sUpdate(std::wstring srcPath, std::wstring destPath, std::wstring sheetLabel)
+	: srcPath(srcPath), destPath(destPath), sheetLabel(sheetLabel)
 {
 	if (srcPath.compare(destPath) == 0) {
 		std::wcout << "ERROR: Duplicate input paths" << std::endl;
@@ -47,25 +47,11 @@ sUpdate::~sUpdate() {
 	dest->release();
 }
 
-int sUpdate::CopyBook()
-{
-	int numSrcSheets = src->sheetCount();
 
-	for (int sheet = 0; sheet < numSrcSheets; sheet++)
-	{
-		srcSheet = src->getSheet(sheet);
-		destSheet = dest->getSheet(getSheet(dest, srcSheet->name()));
-		if (srcSheet && destSheet)
-		{
-			std::wcout << "Loaded sheet " << sheet << ": " << std::wstring(srcSheet->name()) << std::endl;
-			CopySheet();
-		}
-		else
-		{
-			std::wcout << "ERROR: Sheet " << sheet << " not loaded" << std::endl; 
-		}
-	}
-	return 0;
+bool sUpdate::isSheets()
+{
+	return (getSheet(src, sheetLabel) != -1)
+		&& (getSheet(dest, sheetLabel) != -1);
 }
 
 int sUpdate::getSheet(libxl::Book* book, std::wstring label)
@@ -81,39 +67,18 @@ int sUpdate::getSheet(libxl::Book* book, std::wstring label)
 
 void sUpdate::CopySheet()
 {
-	int srcIDCol = getCol(srcSheet, L"unique", false);
-	int destIDCol = getCol(destSheet, L"unique", false);
-
-	std::list<int> srcCommList = getColList(srcSheet, L"comment");
-	for (int srcCommCol : srcCommList)
+	srcSheet = src->getSheet(getSheet(src, sheetLabel));
+	int destSheetNum = getSheet(dest, sheetLabel);
+	dest->delSheet(destSheetNum);
+	destSheet = dest->insertSheet(destSheetNum, srcSheet->name());
+	for (int col = 0; col < srcSheet->lastCol(); col++)
 	{
-		std::wstring destCommHeader(srcSheet->readStr(headRow, srcCommCol));
-		int destCommCol = getCol(destSheet, destCommHeader);
-		CopyCell(headRow, headRow, srcCommCol, destCommCol);
-		for (int srcRow = headRow + 1; srcRow < srcSheet->lastRow(); ++srcRow)
+		destSheet->setCol(col, col, srcSheet->colWidth(col));
+		for (int row = 0; row < srcSheet->lastRow(); row++)
 		{
-			int destRow = getRow(destSheet, srcSheet->readStr(srcRow, srcIDCol), destIDCol);
-			if (destRow != -1)
-				CopyCell(srcRow, destRow, srcCommCol, destCommCol);
+			CopyCell(row, col);
 		}
-
-		auto srcFormat = srcSheet->cellFormat(headRow + 1, srcCommCol);
-		for (int destRow = headRow + 1; destRow < destSheet->lastRow(); ++destRow)
-		{
-			auto cellType = destSheet->cellType(destRow, destCommCol);
-			if (cellType == CELLTYPE_BLANK)
-				destSheet->writeBlank(destRow, destCommCol, srcFormat);
-			else if (cellType == CELLTYPE_EMPTY)
-				destSheet->writeStr(destRow, destCommCol, L"", srcFormat, CELLTYPE_EMPTY);	
-		}
-		destSheet->setCol(destCommCol,destCommCol, srcSheet->colWidth(srcCommCol));
 	}
-}
-
-bool sUpdate::isID()
-{
-	return getCol(src->getSheet(0), L"unique", false) != -1 
-		&& getCol(dest->getSheet(0), L"unique", false) != -1;
 }
 
 void sUpdate::CopyCell(int row, int col)
@@ -177,45 +142,4 @@ void sUpdate::CopyCell(int srcRow, int destRow, int srcCol, int destCol)
 		}
 		}
 	}
-}
-
-int sUpdate::getRow(libxl::Sheet* sheet, std::wstring label, int idCol)
-{
-	for (int row = headRow; row < sheet->lastFilledRow(); row++)
-	{
-		std::wstring cellData(sheet->readStr(row, idCol));
-		if (cellData.compare(label) == 0)
-			return row;
-	}
-	return -1;
-}
-
-
-int sUpdate::getCol(Sheet* sheet, std::wstring label, bool comment)
-{
-	auto colList = getColList(sheet, label);
-	if (colList.empty())
-		if (comment)
-			return sheet->lastFilledCol();
-		else
-			return -1;
-	else
-		return colList.front();
-}
-
-std::list<int> sUpdate::getColList(Sheet* sheet, std::wstring label)
-{
-	std::list<int> colList(0);
-	for (int col = sheet->firstFilledCol(); col < sheet->lastFilledCol(); col++)
-	{
-		if (sheet->cellType(headRow, col) == CELLTYPE_STRING)
-		{
-			std::wstring cellData(sheet->readStr(headRow, col));
-			std::transform(cellData.begin(), cellData.end(), cellData.begin(),
-				[](wchar_t c) { return tolower(c); });
-			if (cellData.find(label) != std::wstring::npos)
-				colList.push_back(col);
-		}
-	}
-	return colList;
 }

@@ -14,12 +14,12 @@ public:
 	wxButton* btn1 = nullptr;
 	wxFilePickerCtrl* srcFile = nullptr;
 	wxFilePickerCtrl* dstFile = nullptr;
-	wxTextCtrl* rowInput = nullptr;
+	wxTextCtrl* labelInput = nullptr;
 	//wxTextCtrl* output = nullptr;
 
 	wxStaticText* srcText = nullptr;
 	wxStaticText* dstText = nullptr;
-	wxStaticText* rowText = nullptr;
+	wxStaticText* labelText = nullptr;
 
 	void PerformTransfer(wxCommandEvent& evt);
 	void ResetButton(wxFileDirPickerEvent& evt);

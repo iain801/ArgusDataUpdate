@@ -14,8 +14,8 @@ wxEND_EVENT_TABLE()
 cFrame::cFrame() : wxFrame(nullptr, wxID_ANY, "Argus Update - Erasca", wxPoint(100, 100), wxSize(340, 170), wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX))
 {
 	btn1 = new wxButton(this, 10001, "Update", wxPoint(10, 90), wxSize(150, 30));
-	rowText = new wxStaticText(this, wxID_ANY, "Start row: ", wxPoint(205, 97));
-	rowInput = new wxTextCtrl(this, wxID_ANY, "", wxPoint(260, 95), wxSize(30, 20), 0L, wxIntegerValidator<unsigned int>());
+	labelText = new wxStaticText(this, wxID_ANY, "Target Sheet: ", wxPoint(165, 97));
+	labelInput = new wxTextCtrl(this, wxID_ANY, "Line Listing", wxPoint(235, 95), wxSize(75, 20));
 	srcText = new wxStaticText(this, wxID_ANY, "Input: ", wxPoint(10, 2));
 	srcFile = new wxFilePickerCtrl(this, 10002, "", "", "XLSX and XLS files (*.xlsx;*.xls)|*.xlsx;*.xls", wxPoint(10, 20), wxSize(300, 20));
 	dstText = new wxStaticText(this, wxID_ANY, "Output: ", wxPoint(10, 42));
@@ -38,25 +38,30 @@ void cFrame::PerformTransfer(wxCommandEvent& evt)
 	btn1->SetLabelText("Running...");
 	std::wstring srcPath = srcFile->GetPath().ToStdWstring();
 	std::wstring destPath = dstFile->GetPath().ToStdWstring();
-	auto rowText = rowInput->GetLineText(0).ToStdString();
+	auto labelText = labelInput->GetLineText(0).ToStdString();
 	if (srcPath.find(L".xls") == std::wstring::npos)
 		btn1->SetLabelText("Invalid Input");
 	else if (destPath.find(L".xls") == std::wstring::npos)
 		btn1->SetLabelText("Invalid Output");
 	//output->Clear();
-	else if (!rowText.empty())
+	else if (!labelText.empty())
 	{
-		int row = std::stoi(rowText) - 1;
-		sUpdate* update = new sUpdate(srcPath, destPath, row);
-
-		update->CopyBook();
+		std::wstring label = labelInput->GetLineText(0).ToStdWstring();
+		sUpdate* update = new sUpdate(srcPath, destPath, label);
+		if (update->isSheets()) 
+		{
+			update->CopySheet();
+			btn1->SetLabelText("Finished!");
+		}
+		else
+		{
+			btn1->SetLabelText("Target Not Found");
+		}
 		delete update;
-		btn1->SetLabelText("Finished!");
-
 	}
 	else
 	{
-		btn1->SetLabelText("No Row Selected");
+		btn1->SetLabelText("No Sheet Selected");
 	}
 	evt.Skip();
 }
